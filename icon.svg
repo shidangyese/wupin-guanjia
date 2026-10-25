@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#4f46e5"/>
-  <text x="256" y="268" font-family="'Microsoft YaHei','PingFang SC',sans-serif" font-size="256" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="central">物</text>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8B47C"/>
+      <stop offset="0.55" stop-color="#EE7A5C"/>
+      <stop offset="1" stop-color="#E85F55"/>
+    </linearGradient>
+  </defs>
+  <rect x="22" y="22" width="468" height="468" rx="108" fill="url(#g)" stroke="#FFF7EA" stroke-width="20"/>
+  <text x="258" y="272" font-size="250" text-anchor="middle" dominant-baseline="central" transform="rotate(-4 256 256)">📦</text>
+  <text x="120" y="148" font-size="58" transform="rotate(8 120 148)">✨</text>
 </svg>
