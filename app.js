@@ -150,7 +150,7 @@ function applyTheme() {
   const dark = t === 'dark' || (t === 'auto' && media.matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = dark ? '#0e1320' : '#4f46e5';
+  if (meta) meta.content = dark ? '#211f1a' : '#6f7f58';
 }
 media.addEventListener('change', () => { if ((db.settings.theme || 'auto') === 'auto') applyTheme(); });
 
@@ -200,12 +200,24 @@ function updateBell() {
 const statTile = (icon, label, num, cls) =>
   `<div class="stat card ${cls}"><div class="stat-top"><span class="stat-icon">${icon}</span><span class="stat-label">${label}</span></div><div class="stat-num">${num}</div></div>`;
 
+/* 按时段返回问候语（手账风页头） */
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 5) return ['夜深啦', '早点休息，明天再整理也好'];
+  if (h < 11) return ['早上好呀', '新的一天，先看看有什么快到期'];
+  if (h < 13) return ['中午好呀', '快过期的东西，趁着新鲜先吃掉'];
+  if (h < 18) return ['下午好呀', '顺手补补货，晚上不慌'];
+  return ['晚上好呀', '今天也要好好收纳呀'];
+}
+
 function viewDash() {
   const countBy = code => db.items.filter(it => statusOf(it).code === code).length;
   const total = db.items.length, soon = countBy('soon'), expired = countBy('expired');
   const att = attentionItems();
   const doseItems = db.items.filter(it => it.dosePerDay && statusOf(it).code !== 'expired');
+  const [hi, sub] = greeting();
   return `
+  <div class="greet"><div class="greet-hi">${hi}</div><div class="greet-sub">${sub}</div></div>
   ${att.length ? `<div class="alert-banner ${expired > 0 ? 'bad' : 'warn'}">
     <span>⏰ 有 ${att.length} 件物品需要关注：${expired} 件已过期，${soon} 件临期</span>
     <button class="link" data-action="goto-attention">查看 →</button>
@@ -921,7 +933,7 @@ function seedDemo() {
 function openModal(html) {
   const layer = document.createElement('div');
   layer.className = 'modal-layer';
-  layer.innerHTML = `<div class="modal">${html}</div>`;
+  layer.innerHTML = `<div class="modal"><div class="sheet-handle"></div>${html}</div>`;
   layer.addEventListener('click', e => { if (e.target === layer) closeTopModal(); });
   $('#modal-root').appendChild(layer);
   document.body.classList.add('noscroll');
