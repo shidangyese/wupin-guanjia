@@ -30,9 +30,10 @@
 }
 
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
 body{margin:0;background:var(--bg);background-image:var(--bg-dots);background-size:20px 20px;
-  color:var(--text);font-size:15px;line-height:1.55;
+  color:var(--text);font-size:15px;line-height:1.55;overflow-x:hidden;
+  overscroll-behavior-x:none;
   font-family:'Yuanti SC','YouYuan','幼圆','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif}
 button{font-family:inherit}
 h2{margin:0 0 10px;font-size:17px;font-family:var(--font-hand);font-weight:700;letter-spacing:.5px}
@@ -285,8 +286,10 @@ input[type=checkbox]{accent-color:var(--brand)}
 
 /* ---------- 弹窗（手机端为底部抽屉） ---------- */
 .modal-layer{position:fixed;inset:0;z-index:60;background:rgba(58,46,35,.5);
-  display:flex;align-items:flex-end;justify-content:center}
-.modal{background:var(--card);width:100%;max-width:600px;max-height:90dvh;overflow-y:auto;
+  display:flex;align-items:flex-end;justify-content:center;
+  overscroll-behavior:contain}
+.modal{background:var(--card);width:100%;max-width:600px;max-height:90dvh;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;
   border:2px solid var(--ink);border-bottom:none;
   border-radius:24px 28px 0 0/26px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));
   animation:modalUp .22s cubic-bezier(.2,.8,.25,1)}
