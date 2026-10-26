@@ -27,13 +27,42 @@ const daysSince = iso => Math.round((today0() - parseISO(iso)) / 864e5);
 function relDays(d) { return d < 0 ? `已过期 ${-d} 天` : d === 0 ? '今天到期' : d === 1 ? '明天到期' : `剩 ${d} 天`; }
 const dateStamp = () => fmtISO(today0()).replace(/-/g, '');
 
+/* ---------- 水彩图标库（手绘 SVG + 蜡笔抖动滤镜） ---------- */
+const NAV_ART = {
+  dash: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M4.5 11 12 4.8 19.5 11" fill="none" stroke="#5e7256" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10.6V19c0 .8.7 1.5 1.5 1.5h9c.8 0 1.5-.7 1.5-1.5v-8.4" fill="#a9c2a0" fill-opacity=".42" stroke="#5e7256" stroke-width="1.6" stroke-linejoin="round"/><path d="M10.1 20.4v-5.2c0-.6.5-1.1 1.1-1.1h1.6c.6 0 1.1.5 1.1 1.1v5.2" fill="#7f9a76" fill-opacity=".45" stroke="#5e7256" stroke-width="1.4"/></g></svg>`,
+  items: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M4.2 12.4c0-.6.4-1.1 1-1.3l6.1-1.9c.5-.2 1-.2 1.5 0l6 1.9c.6.2 1 .7 1 1.3v5.7c0 .7-.4 1.3-1.1 1.5l-5.9 1.8c-.5.2-1 .2-1.5 0l-5-1.8c-.7-.2-1.1-.8-1.1-1.5v-5.7Z" fill="#a9c2a0" fill-opacity=".45" stroke="#4e5d48" stroke-width="1.5" stroke-linejoin="round"/><path d="M4.2 12.4l7.1-2.2c.5-.2 1-.2 1.5 0l7 2.2-7 2.6-7.6-2.6Z" fill="#7f9a76" fill-opacity=".6" stroke="#4e5d48" stroke-width="1.3" stroke-linejoin="round"/><path d="M9.3 10.7V7.1c0-.9.7-1.6 1.6-1.6h2.2c.9 0 1.6.7 1.6 1.6v3.6" fill="#e3e8d6" fill-opacity=".85" stroke="#4e5d48" stroke-width="1.2"/><path d="M12 13.3v9.2" stroke="#4e5d48" stroke-width="1.2"/></g></svg>`,
+  cats: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M11.2 3.6H5.4c-1 0-1.8.8-1.8 1.8v5.8c0 .5.2 1 .5 1.3l7.6 7.6c.7.7 1.9.7 2.6 0l5.4-5.4c.7-.7.7-1.9 0-2.6l-7.6-7.6c-.4-.4-.9-.6-1.4-.5Z" fill="#a9c2a0" fill-opacity=".45" stroke="#4e5d48" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8.3" cy="8.3" r="1.5" fill="#fdfcf5" stroke="#4e5d48" stroke-width="1.3"/></g></svg>`,
+  locs: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M12 21.4s-6.8-5.5-6.8-10.3a6.8 6.8 0 0 1 13.6 0c0 4.8-6.8 10.3-6.8 10.3Z" fill="#d98a76" fill-opacity=".4" stroke="#8a4a3a" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="10.8" r="2.6" fill="#fdfcf5" fill-opacity=".9" stroke="#8a4a3a" stroke-width="1.4"/></g></svg>`,
+  settings: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)" stroke="#4e5d48" stroke-width="1.6" stroke-linecap="round"><path d="M4 7.5h8.4M17.6 7.5H20M4 16.5h3.4M12.6 16.5H20" fill="none"/></g><g filter="url(#wcf)"><circle cx="15" cy="7.5" r="2.3" fill="#a9c2a0" fill-opacity=".55" stroke="#4e5d48" stroke-width="1.4"/><circle cx="10" cy="16.5" r="2.3" fill="#d9b25f" fill-opacity=".55" stroke="#8a6d2f" stroke-width="1.4"/></g></svg>`,
+};
+const CAT_ART = {
+  food: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M12 20.6c-3.9 0-6.6-2.4-6.6-5.4 0-2.4 1.9-4.7 3.5-6.7.8-1 1.6-2 2.1-3 .4.8 1 1.7 1.7 2.6 1.8 2.2 3.9 4.5 3.9 7.1 0 3-2.7 5.4-4.6 5.4Z" fill="#a9c2a0" fill-opacity=".5" stroke="#4e5d48" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 20.2v-9.4" stroke="#4e5d48" stroke-width="1.3" stroke-linecap="round"/><path d="M9.6 13.6c.8.6 1.6.9 2.4.9M10.1 16.3c.6.4 1.2.6 1.9.5" fill="none" stroke="#4e5d48" stroke-width="1" stroke-linecap="round"/></g></svg>`,
+  med: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><g transform="rotate(-38 12 12)"><rect x="5.5" y="8.8" width="13" height="6.4" rx="3.2" fill="#e8b3a4" fill-opacity=".55" stroke="#8a4a3a" stroke-width="1.5"/><path d="M12 8.8h3.3a3.2 3.2 0 0 1 0 6.4H12Z" fill="#d98a76" fill-opacity=".5"/><path d="M12 8.8v6.4" stroke="#8a4a3a" stroke-width="1.3"/></g><path d="M17.6 4.6l1 1M19.3 7.3l.8.8" stroke="#c39a3f" stroke-width="1.2" stroke-linecap="round"/></g></svg>`,
+  snack: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><circle cx="12" cy="12" r="8" fill="#dcc39a" fill-opacity=".55" stroke="#7a5c36" stroke-width="1.5"/><circle cx="9.4" cy="10" r="1.1" fill="#7a5c36" fill-opacity=".7"/><circle cx="14.4" cy="13.4" r="1.2" fill="#7a5c36" fill-opacity=".7"/><circle cx="10.6" cy="15" r=".9" fill="#7a5c36" fill-opacity=".7"/><circle cx="14.8" cy="8.9" r=".8" fill="#7a5c36" fill-opacity=".6"/></g></svg>`,
+  drink: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M7 8.5h10l-1.2 11a1.5 1.5 0 0 1-1.5 1.3H9.7a1.5 1.5 0 0 1-1.5-1.3L7 8.5Z" fill="#aecbdc" fill-opacity=".5" stroke="#4a6b80" stroke-width="1.5" stroke-linejoin="round"/><path d="M13.8 8.3 16.2 3" fill="none" stroke="#4a6b80" stroke-width="1.4" stroke-linecap="round"/><path d="M7.7 11.2h8.6" stroke="#4a6b80" stroke-width="1.2"/></g></svg>`,
+  condiment: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M10 4.3h4v2.7c0 .5.2 1 .6 1.4l.9.9c.6.6 1 1.4 1 2.3v6.9c0 1.1-.9 2-2 2H9.5c-1.1 0-2-.9-2-2v-6.9c0-.9.4-1.7 1-2.3l.9-.9c.4-.4.6-.9.6-1.4V4.3Z" fill="#ecd193" fill-opacity=".55" stroke="#8a6d2f" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.3 4.3h5.4" stroke="#8a6d2f" stroke-width="1.5" stroke-linecap="round"/><rect x="8.9" y="13.4" width="6.2" height="5.4" rx="1" fill="#d9b25f" fill-opacity=".5" stroke="#8a6d2f" stroke-width="1.1"/></g></svg>`,
+  daily: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><rect x="4.5" y="9.6" width="15" height="9.4" rx="2.8" fill="#a3ccc9" fill-opacity=".55" stroke="#3f6b67" stroke-width="1.5"/><path d="M8.3 9.3c0-2 1.6-3.4 3.7-3.4s3.7 1.4 3.7 3.4" fill="none" stroke="#3f6b67" stroke-width="1.3" stroke-linecap="round"/><circle cx="10.4" cy="14.3" r="1.7" fill="#fdfcf5" fill-opacity=".85"/></g></svg>`,
+  clean: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M9.5 10.4h5l.4 2.1c.2.9.3 1.8.3 2.7v3.7c0 1-.8 1.8-1.8 1.8h-2.8c-1 0-1.8-.8-1.8-1.8v-3.7c0-.9.1-1.8.3-2.7l.4-2.1Z" fill="#a3ccc9" fill-opacity=".5" stroke="#3f6b67" stroke-width="1.5" stroke-linejoin="round"/><path d="M10.2 10.2V8c0-.8.7-1.5 1.5-1.5h1.8l.4-1.6h2.7" fill="none" stroke="#3f6b67" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19.2" cy="4.4" r=".7" fill="#3f6b67"/><circle cx="20.8" cy="6.2" r=".6" fill="#3f6b67" fill-opacity=".7"/></g></svg>`,
+  skincare: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M9.4 10h5.2l.6 8.1c.1 1-.7 1.9-1.7 1.9h-3c-1 0-1.8-.9-1.7-1.9l.6-8.1Z" fill="#ecc4cf" fill-opacity=".55" stroke="#96566b" stroke-width="1.5" stroke-linejoin="round"/><path d="M10.6 9.8V7.5c0-.8.6-1.4 1.4-1.4h.3" fill="none" stroke="#96566b" stroke-width="1.4" stroke-linecap="round"/><path d="M12.3 6h4.2l-.7 1.7h-3.5Z" fill="#db9cb0" fill-opacity=".6" stroke="#96566b" stroke-width="1.2" stroke-linejoin="round"/></g></svg>`,
+  other: `<svg viewBox="0 0 24 24"><g filter="url(#wcf)"><path d="M4.8 9.4 12 6.6l7.2 2.8v8.2c0 .9-.6 1.7-1.5 1.9l-5.2 1.2c-.3.1-.7.1-1 0l-5.2-1.2c-.9-.2-1.5-1-1.5-1.9V9.4Z" fill="#dcc39a" fill-opacity=".5" stroke="#7a5c36" stroke-width="1.5" stroke-linejoin="round"/><path d="M4.8 9.4 12 12l7.2-2.6" fill="none" stroke="#7a5c36" stroke-width="1.3" stroke-linejoin="round"/><path d="M12 12v9" stroke="#7a5c36" stroke-width="1.2"/></g></svg>`,
+};
+function catArt(cat, size = 24) {
+  if (cat && cat.svg && CAT_ART[cat.svg]) return CAT_ART[cat.svg].replace('<svg ', `<svg width="${size}" height="${size}" `);
+  return `<span style="font-size:${Math.round(size * 0.85)}px;line-height:1">${esc(cat?.icon || '📦')}</span>`;
+}
+
 /* ---------- 数据 ---------- */
 const STORE_KEY = 'wupin-guanjia-v1';
 const DEFAULT_CATEGORIES = [
-  { id: 'cat-food', name: '食品', icon: '🍎', color: '#f59e0b' },
-  { id: 'cat-med', name: '药品', icon: '💊', color: '#ef4444' },
-  { id: 'cat-daily', name: '日用品', icon: '🧴', color: '#10b981' },
-  { id: 'cat-other', name: '其他', icon: '📦', color: '#64748b' },
+  { id: 'cat-food', name: '食品', icon: '🥬', color: '#7f9a76', svg: 'food' },
+  { id: 'cat-med', name: '药品', icon: '💊', color: '#d98a76', svg: 'med' },
+  { id: 'cat-snack', name: '零食', icon: '🍪', color: '#c4a06a', svg: 'snack' },
+  { id: 'cat-drink', name: '饮品', icon: '🧃', color: '#85aec6', svg: 'drink' },
+  { id: 'cat-condiment', name: '调味料', icon: '🧂', color: '#d9b25f', svg: 'condiment' },
+  { id: 'cat-daily', name: '日用品', icon: '🧼', color: '#7ab3af', svg: 'daily' },
+  { id: 'cat-clean', name: '清洁用品', icon: '🧹', color: '#6aa8a4', svg: 'clean' },
+  { id: 'cat-skincare', name: '护肤美妆', icon: '🧴', color: '#db9cb0', svg: 'skincare' },
+  { id: 'cat-other', name: '其他', icon: '📦', color: '#8a9a80', svg: 'other' },
 ];
 const DEFAULT_LOCATIONS = [
   { id: 'loc-fridge', name: '冰箱冷藏' },
@@ -46,6 +75,12 @@ function migrate(d) {
   d = d || {};
   d.items = Array.isArray(d.items) ? d.items : [];
   d.categories = Array.isArray(d.categories) && d.categories.length ? d.categories : clone(DEFAULT_CATEGORIES);
+  // 老数据自动补齐新增的默认分类，并同步水彩图标（保留用户改过的名字）
+  DEFAULT_CATEGORIES.forEach(def => {
+    const e = d.categories.find(c => c.id === def.id);
+    if (e) { e.color = def.color; e.svg = def.svg; }
+    else d.categories.push(clone(def));
+  });
   d.locations = Array.isArray(d.locations) ? d.locations : clone(DEFAULT_LOCATIONS);
   d.settings = Object.assign(clone(DEFAULT_SETTINGS), d.settings || {});
   d.doseLog = d.doseLog || {}; // 服用提醒发送记录：'物品id|日期|时间' -> true
@@ -168,7 +203,7 @@ const filters = { q: '', status: 'all', cat: 'all', loc: 'all', sort: 'expiry' }
 
 function renderNav() {
   const html = NAV.map(n =>
-    `<button class="nav-item${n.id === view ? ' active' : ''}" data-action="nav" data-view="${n.id}"><span class="ico">${n.icon}</span><span>${n.label}</span></button>`
+    `<button class="nav-item${n.id === view ? ' active' : ''}" data-action="nav" data-view="${n.id}"><span class="ico">${NAV_ART[n.id] || n.icon}</span><span>${n.label}</span></button>`
   ).join('');
   $('#nav').innerHTML = html;
   $('#bottomnav').innerHTML = html;
@@ -355,8 +390,8 @@ function itemRow(it, st) {
   const cycleBadge = cy && cy.d <= 30
     ? `<span class="st-badge cy-${cy.state}" title="每 ${esc(it.cycleDays)} 天更换 · 下次 ${cy.due}">${cy.d < 0 ? '🔁 该更换了' : cy.d === 0 ? '🔁 今天更换' : `🔁 ${cy.d} 天后更换`}</span>`
     : '';
-  const iconStyle = cat ? ` style="background:${esc(cat.color)}1c;border:1px solid ${esc(cat.color)}45"` : '';
-  const barIcon = `<span class="item-icon"${iconStyle}>${cat ? esc(cat.icon) : '📦'}</span>`;
+  const iconStyle = cat ? ` style="background:${esc(cat.color)}1f"` : '';
+  const barIcon = `<span class="item-icon"${iconStyle}>${catArt(cat, 26)}</span>`;
   let bar = '';
   const total = shelfTotalDays(it);
   if (total != null && it.productionDate) {
@@ -381,7 +416,7 @@ function doseRow(it) {
   const cat = catById(it.categoryId);
   const times = (it.doseTimes || []).map(t => `<span class="time-chip">${esc(t)}</span>`).join('');
   return `<button class="row-card row-btn" data-action="edit-item" data-id="${it.id}">
-    <span class="cat-icon" style="background:var(--brand-weak)">${cat ? esc(cat.icon) : '💊'}</span>
+    <span class="cat-icon" style="background:var(--brand-weak)">${catArt(cat, 24)}</span>
     <span class="row-main"><b>${esc(it.name)}</b><span class="muted-small">每天 ${it.dosePerDay} 次${it.notes ? ' · ' + esc(truncate(it.notes, 14)) : ''}</span></span>
     <span class="dose-times">${times}</span>
   </button>`;
@@ -392,7 +427,7 @@ function viewCats() {
   const rows = db.categories.map(c => {
     const n = db.items.filter(i => i.categoryId === c.id).length;
     return `<div class="row-card">
-      <span class="cat-icon" style="background:${esc(c.color)}22;border:1px solid ${esc(c.color)}55">${esc(c.icon)}</span>
+      <span class="cat-icon" style="background:${esc(c.color)}1f">${catArt(c, 24)}</span>
       <span class="row-main"><b>${esc(c.name)}</b><span class="muted-small">${n} 件物品</span></span>
       <button class="icon-btn" data-action="edit-cat" data-id="${c.id}" title="编辑">✏️</button>
       <button class="icon-btn" data-action="del-cat" data-id="${c.id}" title="删除">🗑️</button>
@@ -503,7 +538,7 @@ function openItemForm(id) {
     `<div class="dose-row"><input type="time" name="doseTime" value="${esc(t)}"><button type="button" class="icon-btn" data-del-time title="删除这个时间点">✕</button></div>`).join('');
   const catTags = db.categories.map((c, i) => {
     const on = it ? it.categoryId === c.id : i === 0;
-    return `<button type="button" class="cat-tag${on ? ' on' : ''}" data-cat="${c.id}">${esc(c.icon)} ${esc(c.name)}</button>`;
+    return `<button type="button" class="cat-tag${on ? ' on' : ''}" data-cat="${c.id}">${catArt(c, 15)} ${esc(c.name)}</button>`;
   }).join('');
   const locOpts = ['<option value="">未指定</option>',
     ...db.locations.map(l => `<option value="${l.id}"${it?.locationId === l.id ? ' selected' : ''}>${esc(l.name)}</option>`),
