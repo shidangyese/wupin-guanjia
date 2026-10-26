@@ -150,7 +150,7 @@ function applyTheme() {
   const dark = t === 'dark' || (t === 'auto' && media.matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = dark ? '#211f1a' : '#6f7f58';
+  if (meta) meta.content = dark ? '#22211b' : '#5e7256';
 }
 media.addEventListener('change', () => { if ((db.settings.theme || 'auto') === 'auto') applyTheme(); });
 
@@ -200,14 +200,19 @@ function updateBell() {
 const statTile = (icon, label, num, cls) =>
   `<div class="stat card ${cls}"><div class="stat-top"><span class="stat-icon">${icon}</span><span class="stat-label">${label}</span></div><div class="stat-num">${num}</div></div>`;
 
-/* 按时段返回问候语（手账风页头） */
+/* 按时段返回问候语（小标签 + 趣味大标题） */
 function greeting() {
-  const h = new Date().getHours();
-  if (h < 5) return ['夜深啦', '早点休息，明天再整理也好'];
-  if (h < 11) return ['早上好呀', '新的一天，先看看有什么快到期'];
-  if (h < 13) return ['中午好呀', '快过期的东西，趁着新鲜先吃掉'];
-  if (h < 18) return ['下午好呀', '顺手补补货，晚上不慌'];
-  return ['晚上好呀', '今天也要好好收纳呀'];
+  const d = new Date();
+  const h = d.getHours();
+  const wd = '周' + '日一二三四五六'.charAt(d.getDay());
+  const en = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()];
+  let head, sub;
+  if (h < 5) { head = '夜深啦，冰箱在做梦呢'; sub = '早点休息，明天再整理也好'; }
+  else if (h < 11) { head = '早上好，开箱大吉！'; sub = '新的一天，先看看有什么快到期'; }
+  else if (h < 13) { head = '快过期的，先吃掉！'; sub = '趁着新鲜，中午安排一下'; }
+  else if (h < 18) { head = '补货小能手，就是你！'; sub = '顺手补补货，晚上不慌'; }
+  else { head = '这就是..冰箱的实力吗！'; sub = '今天也要好好收纳呀'; }
+  return { label: `${wd} · ${en}`, head, sub };
 }
 
 function viewDash() {
@@ -215,9 +220,9 @@ function viewDash() {
   const total = db.items.length, soon = countBy('soon'), expired = countBy('expired');
   const att = attentionItems();
   const doseItems = db.items.filter(it => it.dosePerDay && statusOf(it).code !== 'expired');
-  const [hi, sub] = greeting();
+  const g = greeting();
   return `
-  <div class="greet"><div class="greet-hi">${hi}</div><div class="greet-sub">${sub}</div></div>
+  <div class="greet"><div class="greet-label">${g.label}</div><div class="greet-hi">${g.head}</div><div class="greet-sub">${g.sub}</div></div>
   ${att.length ? `<div class="alert-banner ${expired > 0 ? 'bad' : 'warn'}">
     <span>⏰ 有 ${att.length} 件物品需要关注：${expired} 件已过期，${soon} 件临期</span>
     <button class="link" data-action="goto-attention">查看 →</button>
@@ -496,8 +501,10 @@ function openItemForm(id) {
   const cycleOn = !!(it?.cycleDays && it?.cycleAnchor);
   const doseRows = (doseOn ? it.doseTimes : ['09:00']).map(t =>
     `<div class="dose-row"><input type="time" name="doseTime" value="${esc(t)}"><button type="button" class="icon-btn" data-del-time title="删除这个时间点">✕</button></div>`).join('');
-  const catOpts = db.categories.map(c =>
-    `<option value="${c.id}"${it?.categoryId === c.id ? ' selected' : ''}>${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+  const catTags = db.categories.map((c, i) => {
+    const on = it ? it.categoryId === c.id : i === 0;
+    return `<button type="button" class="cat-tag${on ? ' on' : ''}" data-cat="${c.id}">${esc(c.icon)} ${esc(c.name)}</button>`;
+  }).join('');
   const locOpts = ['<option value="">未指定</option>',
     ...db.locations.map(l => `<option value="${l.id}"${it?.locationId === l.id ? ' selected' : ''}>${esc(l.name)}</option>`),
     '<option value="__new__">＋ 新建位置…</option>'].join('');
@@ -510,14 +517,15 @@ function openItemForm(id) {
     <h3 class="modal-title">${it ? '编辑物品' : '添加物品'}</h3>
     <form id="item-form">
       <div class="field"><label>名称 *</label><input name="name" required maxlength="40" value="${esc(it?.name || '')}" placeholder="如：阿莫西林、鲜牛奶"></div>
-      <div class="form-grid2">
-        <div class="field"><label>分类</label><select name="categoryId">${catOpts}</select></div>
-        <div class="field"><label>数量 / 单位</label><div class="qty-row">
-          <input type="number" name="quantity" min="0" step="any" value="${esc(it?.quantity ?? 1)}">
-          <input name="unit" list="unit-list" maxlength="6" value="${esc(it?.unit || '')}" placeholder="单位">
-          <datalist id="unit-list">${unitList}</datalist>
-        </div></div>
+      <div class="field"><label>分类 *</label>
+        <div class="cat-tags" id="cat-tags">${catTags}</div>
+        <input type="hidden" name="categoryId" value="${esc(it?.categoryId || (db.categories[0] ? db.categories[0].id : ''))}">
       </div>
+      <div class="field"><label>数量 / 单位</label><div class="qty-row">
+        <input type="number" name="quantity" min="0" step="any" value="${esc(it?.quantity ?? 1)}">
+        <input name="unit" list="unit-list" maxlength="6" value="${esc(it?.unit || '')}" placeholder="单位">
+        <datalist id="unit-list">${unitList}</datalist>
+      </div></div>
       <div class="field"><label>存放位置</label>
         <select name="locationId" id="loc-select">${locOpts}</select>
         <input id="new-loc" class="hidden" style="margin-top:8px" placeholder="输入新位置名称，如：阳台储物柜" maxlength="20">
@@ -633,6 +641,13 @@ function openItemForm(id) {
   };
   ['productionDate', 'shelfLifeValue', 'shelfLifeUnit', 'remindDays'].forEach(n =>
     form.elements[n].addEventListener('input', updatePropHint));
+  $('#cat-tags').addEventListener('click', e => {
+    const b = e.target.closest('.cat-tag');
+    if (!b) return;
+    $$('#cat-tags .cat-tag').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    form.elements.categoryId.value = b.dataset.cat;
+  });
   form.querySelectorAll('input[name=expmode]').forEach(r => r.addEventListener('change', updatePropHint));
   updatePropHint();
   if (window.innerWidth >= 880) layer.querySelector('[name=name]').focus();
