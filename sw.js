@@ -1,6 +1,6 @@
 /* 物品管家 Service Worker：缓存全部静态资源，安装后可离线使用。
    注意：以后修改了文件，请把 CACHE 版本号 +1 才会更新缓存。 */
-const CACHE = 'wupin-guanjia-v12';
+const CACHE = 'wupin-guanjia-v13';
 const ASSETS = [
   './', './index.html', './style.css', './app.js',
   './manifest.webmanifest', './icon.svg',
