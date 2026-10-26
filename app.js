@@ -557,7 +557,7 @@ function openItemForm(id) {
         <input type="hidden" name="categoryId" value="${esc(it?.categoryId || (db.categories[0] ? db.categories[0].id : ''))}">
       </div>
       <div class="field"><label>数量 / 单位</label><div class="qty-row">
-        <input type="number" name="quantity" min="0" step="any" value="${esc(it?.quantity ?? 1)}">
+        <input type="number" name="quantity" min="0" step="any" inputmode="decimal" value="${esc(it?.quantity ?? 1)}">
         <input name="unit" list="unit-list" maxlength="6" value="${esc(it?.unit || '')}" placeholder="单位">
         <datalist id="unit-list">${unitList}</datalist>
       </div></div>
@@ -572,19 +572,30 @@ function openItemForm(id) {
         </div>
         <p class="muted-small" id="prop-hint" style="margin:8px 0 0"></p>
       </div>
-      <div class="field" id="row-direct" ${isProd ? 'hidden' : ''}><label>到期日期</label><input type="date" name="expiryDate" value="${exp || ''}"></div>
+      <div class="field" id="row-direct" ${isProd ? 'hidden' : ''}><label>到期日期</label>
+        <input type="date" name="expiryDate" value="${exp || ''}">
+        <div class="quick-dates">
+          <button type="button" data-qd="0">今天</button>
+          <button type="button" data-qd="1">明天</button>
+          <button type="button" data-qd="3">3 天</button>
+          <button type="button" data-qd="7">1 周</button>
+          <button type="button" data-qd="m1">1 个月</button>
+        </div>
+      </div>
       <div class="field" id="row-prod" ${isProd ? '' : 'hidden'}>
         <div class="form-grid2">
           <div class="field"><label>生产日期</label><input type="date" name="productionDate" value="${esc(it?.productionDate || '')}"></div>
           <div class="field"><label>保质期时长</label><div class="qty-row">
-            <input type="number" name="shelfLifeValue" min="0" step="1" value="${esc(it?.shelfLifeValue ?? '')}" placeholder="如 18">
+            <input type="number" name="shelfLifeValue" min="0" step="1" inputmode="numeric" value="${esc(it?.shelfLifeValue ?? '')}" placeholder="如 18">
             <select name="shelfLifeUnit">${lifeUnits}</select>
           </div></div>
         </div>
       </div>
+      <button type="button" class="more-toggle${it ? ' open' : ''}" data-action="toggle-more">⚙ 更多设置<span class="chev">▾</span></button>
+      <div id="more-fields" class="${it ? '' : 'hidden'}">
       <div class="form-grid2">
         <div class="field"><label>开封日期（选填）</label><input type="date" name="openedDate" value="${esc(it?.openedDate || '')}"></div>
-        <div class="field"><label>单独提醒天数</label><input type="number" name="remindDays" min="0" max="365" value="${esc(it?.remindDays ?? '')}" placeholder="留空自动计算"></div>
+        <div class="field"><label>单独提醒天数</label><input type="number" name="remindDays" min="0" max="365" inputmode="numeric" value="${esc(it?.remindDays ?? '')}" placeholder="留空自动计算"></div>
       </div>
       <div class="field">
         <label class="check-line"><input type="checkbox" id="dose-on" ${doseOn ? 'checked' : ''}> 每日服用提醒（维生素、药品等，次数不限）</label>
@@ -597,7 +608,7 @@ function openItemForm(id) {
         <label class="check-line"><input type="checkbox" id="cycle-on" ${cycleOn ? 'checked' : ''}> 周期更换提醒（牙刷、滤芯、毛巾等耗材）</label>
         <div id="cycle-fields" class="${cycleOn ? '' : 'hidden'}" style="margin-top:8px">
           <div class="form-grid2">
-            <div class="field"><label>更换周期（天）</label><input type="number" name="cycleDays" min="1" max="3650" value="${esc(it?.cycleDays ?? '')}" placeholder="如 90"></div>
+            <div class="field"><label>更换周期（天）</label><input type="number" name="cycleDays" min="1" max="3650" inputmode="numeric" value="${esc(it?.cycleDays ?? '')}" placeholder="如 90"></div>
             <div class="field"><label>上次更换 / 开始使用</label><input type="date" name="cycleAnchor" value="${esc(it?.cycleAnchor || '')}"></div>
           </div>
           <p class="muted-small" id="cycle-hint" style="margin:4px 0 8px"></p>
@@ -605,6 +616,7 @@ function openItemForm(id) {
         </div>
       </div>
       <div class="field"><label>备注</label><textarea name="notes" rows="2" maxlength="200" placeholder="如：开封后请尽快服用">${esc(it?.notes || '')}</textarea></div>
+      </div>
       <div class="modal-btns">
         ${it ? `<button type="button" class="btn danger-ghost" data-action="del-item" data-id="${it.id}">删除</button>` : ''}
         <span class="grow"></span>
@@ -682,6 +694,12 @@ function openItemForm(id) {
     $$('#cat-tags .cat-tag').forEach(x => x.classList.remove('on'));
     b.classList.add('on');
     form.elements.categoryId.value = b.dataset.cat;
+  });
+  form.addEventListener('click', e => {
+    const b = e.target.closest('[data-qd]');
+    if (!b) return;
+    const v = b.dataset.qd;
+    form.elements.expiryDate.value = v === 'm1' ? fmtISO(addMonths(today0(), 1)) : fmtISO(addDays(today0(), Number(v)));
   });
   form.querySelectorAll('input[name=expmode]').forEach(r => r.addEventListener('change', updatePropHint));
   updatePropHint();
@@ -983,23 +1001,30 @@ function seedDemo() {
 function openModal(html) {
   const layer = document.createElement('div');
   layer.className = 'modal-layer';
-  layer.innerHTML = `<div class="modal"><div class="sheet-handle"></div>${html}</div>`;
+  layer.innerHTML = `<div class="modal"><div class="sheet-handle"></div><button type="button" class="sheet-x" data-action="close-modal" aria-label="关闭">✕</button>${html}</div>`;
   layer.addEventListener('click', e => { if (e.target === layer) closeTopModal(); });
   $('#modal-root').appendChild(layer);
   document.body.classList.add('noscroll');
+  // 压入一条历史：手机按"返回"键 = 关闭弹窗，而不是退出页面
+  try { history.pushState({ wgModal: true }, ''); } catch (e) { /* 忽略 */ }
   return layer;
 }
-function closeTopModal() {
+function closeTopModal(fromPop = false) {
   const root = $('#modal-root');
   const last = root.lastElementChild;
   if (!last) return;
   last.remove();
   if (!root.children.length) document.body.classList.remove('noscroll');
+  if (!fromPop && history.state && history.state.wgModal) { try { history.back(); } catch (e) { /* 忽略 */ } }
 }
 function closeModalAll() {
   $('#modal-root').innerHTML = '';
   document.body.classList.remove('noscroll');
+  if (history.state && history.state.wgModal) { try { history.back(); } catch (e) { /* 忽略 */ } }
 }
+window.addEventListener('popstate', () => {
+  if ($('#modal-root').children.length) closeTopModal(true);
+});
 function confirmBox(message, { okText = '删除', danger = true } = {}) {
   return new Promise(resolve => {
     const layer = openModal(`
@@ -1032,6 +1057,13 @@ const ACTIONS = {
   'edit-item': el => openItemForm(el.dataset.id),
   'del-item': el => delItem(el.dataset.id),
   'close-modal': () => closeTopModal(),
+  'toggle-more': el => {
+    const f = el.closest('form');
+    if (!f) return;
+    const m = f.querySelector('#more-fields');
+    if (m) m.classList.toggle('hidden');
+    el.classList.toggle('open');
+  },
   'add-cat': () => openCatForm(),
   'edit-cat': el => openCatForm(el.dataset.id),
   'del-cat': el => delCat(el.dataset.id),
